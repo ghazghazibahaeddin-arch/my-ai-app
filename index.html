@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f4f4; }
+        .chat-container { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 10px; shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #chat-box { height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; }
+        .msg { margin: 5px; padding: 8px; border-radius: 8px; max-width: 80%; }
+        .user { align-self: flex-end; background: #007bff; color: white; }
+        .ai { align-self: flex-start; background: #eee; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h2>AI Chat</h2>
+        <div id="chat-box"></div>
+        <input type="text" id="user-input" placeholder="Type a message..." style="width: 80%; padding: 10px;">
+        <button onclick="sendMsg()" style="padding: 10px;">Send</button>
+    </div>
+
+    <script>
+        async function sendMsg() {
+            const input = document.getElementById('user-input');
+            const box = document.getElementById('chat-box');
+            if(!input.value) return;
+
+            box.innerHTML += `<div class="msg user">${input.value}</div>`;
+            const prompt = input.value;
+            input.value = '';
+
+            try {
+                const res = await fetch("https://passionateshabbyfonts-snapwild34.replit.app/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+                const data = await res.json();
+                box.innerHTML += `<div class="msg ai">${data.choices[0].message.content}</div>`;
+            } catch (e) {
+                box.innerHTML += `<div class="msg ai" style="color:red">Error: Engine Offline</div>`;
+            }
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+          </html>
+
