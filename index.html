@@ -3,56 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Professional Chat</title>
+    <title>AI Assistant - Vercel Edition</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .chat-card { width: 400px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 80vh; }
-        .header { background: #000; color: white; padding: 20px; text-align: center; border-radius: 20px 20px 0 0; }
-        #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 12px; border-radius: 15px; font-size: 14px; max-width: 80%; }
-        .user { align-self: flex-end; background: #007bff; color: white; }
-        .ai { align-self: flex-start; background: #f1f1f1; color: #333; }
-        .input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
-        input { flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 20px; outline: none; }
-        button { background: #000; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
+        :root { --primary: #000000; --bg: #f4f7f6; --user-msg: #007bff; --ai-msg: #f1f0f0; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-container { width: 95%; max-width: 450px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 85vh; overflow: hidden; }
+        .chat-header { background: var(--primary); color: white; padding: 20px; text-align: center; font-weight: 600; font-size: 1.1em; }
+        #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 14.5px; line-height: 1.5; word-wrap: break-word; }
+        .user { align-self: flex-end; background: var(--user-msg); color: white; border-bottom-right-radius: 4px; }
+        .ai { align-self: flex-start; background: var(--ai-msg); color: #222; border-bottom-left-radius: 4px; }
+        .typing { font-style: italic; color: #888; font-size: 12px; margin-left: 5px; display: none; }
+        .input-area { border-top: 1px solid #eee; padding: 15px; display: flex; gap: 10px; background: white; }
+        input { flex: 1; border: 1px solid #ddd; padding: 12px 18px; border-radius: 25px; outline: none; font-size: 14px; transition: border 0.3s; }
+        input:focus { border-color: var(--user-msg); }
+        button { background: var(--primary); color: white; border: none; padding: 10px 22px; border-radius: 25px; cursor: pointer; font-weight: 600; transition: transform 0.2s, opacity 0.2s; }
+        button:active { transform: scale(0.95); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
-    <div class="chat-card">
-        <div class="header">AI Assistant</div>
-        <div id="chat-box"></div>
+    <div class="chat-container">
+        <div class="chat-header">AI Smart Assistant</div>
+        <div id="chat-box">
+            <div class="msg ai">Hello! How can I help you today?</div>
+        </div>
+        <div id="typing-indicator" class="typing">AI is thinking...</div>
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="Type a message...">
-            <button onclick="send()">Send</button>
+            <input type="text" id="user-input" placeholder="Ask me anything..." autocomplete="off">
+            <button id="send-btn">Send</button>
         </div>
     </div>
 
     <script>
-        async function send() {
-            const input = document.getElementById('user-input');
-            const box = document.getElementById('chat-box');
-            if(!input.value.trim()) return;
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
 
-            const text = input.value;
-            box.innerHTML += `<div class="msg user">${text}</div>`;
-            input.value = '';
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. عرض رسالة المستخدم
+            appendMessage('user', text);
+            userInput.value = '';
+            
+            // 2. تفعيل حالة الانتظار
+            sendBtn.disabled = true;
+            typingIndicator.style.display = 'block';
+            chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                // الاتصال الآن داخلي بنفس الموقع!
-                const res = await fetch("/api/chat", {
+                // 3. الاتصال بمحرك Vercel الجديد (الذي جربناه بنجاح)
+                const response = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt: text })
                 });
 
-                const data = await res.json();
-                const reply = data.choices[0].message.content;
-                box.innerHTML += `<div class="msg ai">${reply}</div>`;
-            } catch (e) {
-                box.innerHTML += `<div class="msg ai" style="color:red">Error: Connection failed.</div>`;
+                if (!response.ok) throw new Error('Server Error');
+
+                const data = await response.json();
+                
+                // التأكد من بنية الرد القادم من Groq عبر الـ API الخاص بك
+                const aiResponse = data.choices[0].message.content;
+                appendMessage('ai', aiResponse);
+
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('ai', "❌ Sorry, I'm having trouble connecting. Please refresh the page.");
+            } finally {
+                // 4. إعادة الواجهة لحالتها الطبيعية
+                sendBtn.disabled = false;
+                typingIndicator.style.display = 'none';
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
-            box.scrollTop = box.scrollHeight;
         }
+
+        function appendMessage(role, content) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${role}`;
+            msgDiv.innerText = content;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // تشغيل الإرسال عند الضغط على الزر أو Enter
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
     </script>
 </body>
 </html>
