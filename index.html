@@ -3,28 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Smart Chat</title>
+    <title>AI Professional Chat</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { width: 400px; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 80vh; }
-        .header { background: #000; color: white; padding: 15px; text-align: center; border-radius: 10px 10px 0 0; }
-        #chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px; border-radius: 10px; max-width: 80%; font-size: 14px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .chat-card { width: 400px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 80vh; }
+        .header { background: #000; color: white; padding: 20px; text-align: center; border-radius: 20px 20px 0 0; }
+        #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 12px; border-radius: 15px; font-size: 14px; max-width: 80%; }
         .user { align-self: flex-end; background: #007bff; color: white; }
-        .ai { align-self: flex-start; background: #e9ecef; color: #333; }
-        .input-area { padding: 15px; border-top: 1px solid #ddd; display: flex; gap: 5px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none; }
-        button { background: #000; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; }
-        .error { color: red; text-align: center; font-size: 12px; margin-bottom: 5px; display: none; }
+        .ai { align-self: flex-start; background: #f1f1f1; color: #333; }
+        .input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; }
+        input { flex: 1; border: 1px solid #ddd; padding: 10px; border-radius: 20px; outline: none; }
+        button { background: #000; color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">AI Chat Assistant</div>
+    <div class="chat-card">
+        <div class="header">AI Assistant</div>
         <div id="chat-box"></div>
-        <div id="error-msg" class="error">Engine Offline. Make sure Replit is Running!</div>
         <div class="input-area">
-            <input type="text" id="user-input" placeholder="Type something...">
+            <input type="text" id="user-input" placeholder="Type a message...">
             <button onclick="send()">Send</button>
         </div>
     </div>
@@ -33,17 +31,15 @@
         async function send() {
             const input = document.getElementById('user-input');
             const box = document.getElementById('chat-box');
-            const err = document.getElementById('error-msg');
             if(!input.value.trim()) return;
 
             const text = input.value;
             box.innerHTML += `<div class="msg user">${text}</div>`;
             input.value = '';
-            err.style.display = 'none';
 
             try {
-                // الرابط الدقيق مع الشرطتين كما في الصورة
-                const res = await fetch("https://passionate-shabby-fonts--snapwild34.replit.app/chat", {
+                // الاتصال الآن داخلي بنفس الموقع!
+                const res = await fetch("/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt: text })
@@ -53,7 +49,7 @@
                 const reply = data.choices[0].message.content;
                 box.innerHTML += `<div class="msg ai">${reply}</div>`;
             } catch (e) {
-                err.style.display = 'block';
+                box.innerHTML += `<div class="msg ai" style="color:red">Error: Connection failed.</div>`;
             }
             box.scrollTop = box.scrollHeight;
         }
