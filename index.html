@@ -1,99 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Assistant - Vercel Edition</title>
-    <style>
-        :root { --primary: #000000; --bg: #f4f7f6; --user-msg: #007bff; --ai-msg: #f1f0f0; }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--bg); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .chat-container { width: 95%; max-width: 450px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 85vh; overflow: hidden; }
-        .chat-header { background: var(--primary); color: white; padding: 20px; text-align: center; font-weight: 600; font-size: 1.1em; }
-        #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-        .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 14.5px; line-height: 1.5; word-wrap: break-word; }
-        .user { align-self: flex-end; background: var(--user-msg); color: white; border-bottom-right-radius: 4px; }
-        .ai { align-self: flex-start; background: var(--ai-msg); color: #222; border-bottom-left-radius: 4px; }
-        .typing { font-style: italic; color: #888; font-size: 12px; margin-left: 5px; display: none; }
-        .input-area { border-top: 1px solid #eee; padding: 15px; display: flex; gap: 10px; background: white; }
-        input { flex: 1; border: 1px solid #ddd; padding: 12px 18px; border-radius: 25px; outline: none; font-size: 14px; transition: border 0.3s; }
-        input:focus { border-color: var(--user-msg); }
-        button { background: var(--primary); color: white; border: none; padding: 10px 22px; border-radius: 25px; cursor: pointer; font-weight: 600; transition: transform 0.2s, opacity 0.2s; }
-        button:active { transform: scale(0.95); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Assistant - Vercel</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .chat-container { width: 95%; max-width: 450px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 85vh; overflow: hidden; }
+    .chat-header { background: #000; color: white; padding: 20px; text-align: center; font-weight: 600; font-size: 1.1em; }
+    #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+    .msg { padding: 12px 16px; border-radius: 18px; max-width: 80%; font-size: 14.5px; line-height: 1.5; word-wrap: break-word; }
+    .user { align-self: flex-end; background: #007bff; color: white; border-bottom-right-radius: 4px; }
+    .ai { align-self: flex-start; background: #f1f0f0; color: #222; border-bottom-left-radius: 4px; }
+    .input-area { border-top: 1px solid #eee; padding: 15px; display: flex; gap: 10px; background: white; }
+    input { flex: 1; border: 1px solid #ddd; padding: 12px 18px; border-radius: 25px; outline: none; font-size: 14px; }
+    button { background: #000; color: white; border: none; padding: 10px 22px; border-radius: 25px; cursor: pointer; font-weight: 600; }
+  </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">AI Smart Assistant</div>
-        <div id="chat-box">
-            <div class="msg ai">Hello! How can I help you today?</div>
-        </div>
-        <div id="typing-indicator" class="typing">AI is thinking...</div>
-        <div class="input-area">
-            <input type="text" id="user-input" placeholder="Ask me anything..." autocomplete="off">
-            <button id="send-btn">Send</button>
-        </div>
+  <div class="chat-container">
+    <div class="chat-header">AI Assistant</div>
+    <div id="chat-box">
+      <div class="msg ai">Hello! How can I help you today?</div>
     </div>
+    <div class="input-area">
+      <input type="text" id="user-input" placeholder="Ask me anything..." autocomplete="off">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
 
-    <script>
-        const chatBox = document.getElementById('chat-box');
-        const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
-        const typingIndicator = document.getElementById('typing-indicator');
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
 
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
 
-            // 1. عرض رسالة المستخدم
-            appendMessage('user', text);
-            userInput.value = '';
-            
-            // 2. تفعيل حالة الانتظار
-            sendBtn.disabled = true;
-            typingIndicator.style.display = 'block';
-            chatBox.scrollTop = chatBox.scrollHeight;
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
 
-            try {
-                // 3. الاتصال بمحرك Vercel الجديد (الذي جربناه بنجاح)
-                const response = await fetch("/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt: text })
-                });
+      appendMessage('user', text);
+      userInput.value = '';
+      sendBtn.disabled = true;
 
-                if (!response.ok) throw new Error('Server Error');
-
-                const data = await response.json();
-                
-                // التأكد من بنية الرد القادم من Groq عبر الـ API الخاص بك
-                const aiResponse = data.choices[0].message.content;
-                appendMessage('ai', aiResponse);
-
-            } catch (error) {
-                console.error('Error:', error);
-                appendMessage('ai', "❌ Sorry, I'm having trouble connecting. Please refresh the page.");
-            } finally {
-                // 4. إعادة الواجهة لحالتها الطبيعية
-                sendBtn.disabled = false;
-                typingIndicator.style.display = 'none';
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        }
-
-        function appendMessage(role, content) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `msg ${role}`;
-            msgDiv.innerText = content;
-            chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        // تشغيل الإرسال عند الضغط على الزر أو Enter
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: text })
         });
-    </script>
+
+        if (!res.ok) throw new Error('Server error');
+
+        const data = await res.json();
+        const reply = data.choices[0].message.content;
+        appendMessage('ai', reply);
+
+      } catch (error) {
+        appendMessage('ai', "❌ Connection failed. Check API key or redeploy.");
+      } finally {
+        sendBtn.disabled = false;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    function appendMessage(role, content) {
+      const div = document.createElement('div');
+      div.className = `msg ${role}`;
+      div.innerText = content;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
 </body>
 </html>
