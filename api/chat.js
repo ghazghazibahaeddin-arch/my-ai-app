@@ -3,9 +3,9 @@ module.exports = async function (req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { prompt } = req.body;
-
   try {
+    const { prompt } = req.body;
+
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -22,6 +22,6 @@ module.exports = async function (req, res) {
     return res.status(200).json(data);
 
   } catch (error) {
-    return res.status(500).json({ error: "Groq request failed" });
+    return res.status(500).json({ error: error.message });
   }
 }
