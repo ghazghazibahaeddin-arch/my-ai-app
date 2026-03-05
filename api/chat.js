@@ -1,11 +1,11 @@
-export default async function handler(req, res) {
+module.exports = async function (req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    const { prompt } = req.body;
+  const { prompt } = req.body;
 
+  try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
